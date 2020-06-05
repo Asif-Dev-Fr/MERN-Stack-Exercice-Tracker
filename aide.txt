@@ -1,0 +1,308 @@
+Tutorial : https://www.youtube.com/watch?v=7CqJlxBYj-M
+
+MERN Stack : 
+MongoDB 
+Express
+React
+Node.js
+
+Database concepts 
+Tabular (Relational) / MongoDB
+Database             / Database
+Table                / Collection
+Row                  / Document
+Index                / Index
+Join                 / $lookup
+Foreign key          / Reference
+
+
+MongoDB Documents store as BSON Types (binary json)
+
+/-----------------------------------------------------------------------------------------------------------------------------/
+MongoDB Atlas = fastest, easiest way to get started with MongoDB (cloud storage)
+Build a cluster after signing up (for the project, we used google cloudplatform)
+Configuration of the cluster : 
+    After the creation done, click on Connect 
+    Click on Add Your Current IP Adress + create a username (adminGod95) and password (iAmADev)
+    Choose a connection method ==> Connect Your Application
+    Connect ==> connection string :  mongodb+srv://adminGod95:iAmADev@cluster-react-node-1-ylgru.gcp.mongodb.net/test?retryWrites=true&w=majority (replace password with the selected password)
+/-----------------------------------------------------------------------------------------------------------------------------/
+
+Creating a react project with npx create-react-app name 
+
+/-----------------------------------------------------------------------------------------------------------------------------/
+
+In our case, we will start by the server side =>>
+[
+    Create a new folder : mkdir backend
+    Go to the folder and then type : npm init
+    Install depencies : npm install express cors mongoose dotenv
+    Install a depency globally : npm install -g nodemon
+
+    /-----------------------------------------------------------------------------------------------------------------------------/
+
+    Créer un fichier server.js dans le dossier backend 
+
+    Inside the server.js ==>
+        // Call the depencies that we are gonna need 
+        const express = require('express');
+        const cors = require('cors');
+
+        // Configures so we can have our environnement variable on the .env
+        require('dotenv').config();
+
+        // Create our express server 
+        const app = express();
+        const port = process.env.PORT || 3000;
+
+        // Middlewares explanation : https://medium.com/@jamischarles/what-is-middleware-a-simple-explanation-bb22d6b41d01
+        app.use(cors());
+        app.use(express.json);
+
+        // Starts the server : 
+        app.listen(port, () =>{
+            console.log(`Server is running ${port}`);
+        });
+
+        /-----------------------------------------------------------------------------------------------------------------------------/
+
+        Add depency after const cors to connect to the DB =>
+        const mongoose = require('mongoose');
+
+        Connection to the DB =>
+        // the URI is provided on the MongoDB Atlas website after the creation of the cluster :
+        const uri = process.env.ATLAS_URI;
+
+        // Connection : 
+        mongoose.connect(uri, {useNewUrlParser: true, useCreateIndex: true, useUnifiedTopology: true});
+        const connection = mongoose.connection;
+        connection.once('open', () => {
+            console.log('MongoDB connection established successfully');
+        });
+
+        /-----------------------------------------------------------------------------------------------------------------------------/
+
+        Create .env for host the environnement variable :
+        ATLAS_URI=mongodb+srv://adminGod95:iAmADev@cluster-react-node-1-ylgru.gcp.mongodb.net/test?retryWrites=true&w=majority
+
+        Creation of collection (table) to the Database
+        Create a new folder called models then create 2 new files : exercices.model.js and users.model.js 
+
+        /-----------------------------------------------------------------------------------------------------------------------------/
+
+        User.model.js = 
+        // Require : 
+        const mongoose = require('mongoose');
+
+        // Create a const which stores the class Schema of mongoose : 
+        // Schema : https://mongoosejs.com/docs/guide.html
+        const Schema = mongoose.Schema;
+
+        // username is gonna be type string, it's required and unique, trim out the white space at the end and at least 3 caracteres
+        // timestamps will create automatically field to when it's created and updated 
+        const userSchema = new Schema({
+            username: {
+                type: String,
+                required: true,
+                unique: true,
+                trim: true,
+                minlength: 3
+            },
+        }, {
+            timestamps: true,
+        });
+
+        // on crée une const qui contient le field  qu'on export
+        const User = mongoose.model('User', userSchema);
+        module.exports = User;
+
+        /-----------------------------------------------------------------------------------------------------------------------------/
+
+        const mongoose = require('mongoose');
+
+        const Schema = mongoose.Schema;
+
+        const exercicesSchema = new Schema ({
+            username: { type: String, required: true },
+            description: { type: String, required: true },
+            duration: {type: Number, required: true},
+            date: { type: Date, required: true},
+        }, {
+            timestamps: true,
+        });
+
+        const Exerice = mongoose.model('Exercie', exercicesSchema);
+        module.exports = Exerice;
+
+        /-----------------------------------------------------------------------------------------------------------------------------/
+
+        Creation d'un CRUD 
+        Pour cela, on crée un dossier routes avec 2 fichiers, exercises.js et users.js 
+
+        Demander au server.js d'utiliser exercises.js et users.js (à mettre avant app.listen)
+        // Requiring the files : 
+        const exercisesRouter = require('./routes/exercises');
+        const usersRouter = require('./routes/users');
+
+        // Using the files : 
+        // Qd quelqu'un mettra /exercices dans l'URL, c'est le fichier /routes/exercices qui va être chargé !!! 
+        app.use('/exercises', exercisesRouter);
+        app.use('/users', usersRouter);
+
+        // users.js :
+        // We need the express router because it's a route (URL) that we create 
+        const router = require('express').Router();
+        let User = require('../models/users.model');
+
+        // /users/ (path) 
+        // .get to retrieve all the data about the users from the DB
+        // find() is a mongoose method which finds all the users in the DB (it returns a promise so the result are return in a json format )
+        router.route('/').get((req, rest) => {
+            User.find()
+                .then(users => rest.json(users))
+                .catch(err => rest.status(400).json('Error' + err));
+        });
+
+        // /users/add (path)
+        // .post because we will add a new user and send the information to the DB 
+        // methode save() to save in the DB, then or catch
+        router.route('/add').post((req,res) => {
+            const username = req.body.username;
+
+            const newUser = new User({username});
+
+            newUser.save()
+                .then(() => res.json('User added !'))
+                .catch(err => res.statut(400).json('Error' + err));
+        })
+
+        module.exports = router;
+
+        // exercices.js :
+        const router = require('express').Router();
+        let Exercise = require('../models/exercices.model');
+
+        router.route('/').get((req,res) => {
+            Exercise.find()
+                .then(exercices => res.json(exercices))
+                .catch(err => res.status(400).json('Error' + err));
+        });
+
+        router.route('/add').post((req, res) => {
+            const username = req.body.username;
+            const description = req.body.description;
+            const duration = Number(req.body.duration);
+            const date = Date.parse(req.body.date);
+
+
+            const newExercice = new Exercise({
+                username,
+                description,
+                duration,
+                date
+            });
+
+            newExercice.save()
+                .then(() => res.json('Exercise added !'))
+                .catch(err => res.status(400).json('Error: ' + err));
+
+        });
+
+        module.exports = router;
+
+        /-----------------------------------------------------------------------/
+
+        // Utilisation du software Insomnia pour tester si ça fonctionne 
+        http://localhost:5000/users/add en poste
+        dans body, on choisit json et on écrit : 
+        {
+            "username":"name"
+        }
+        http://localhost:5000/users/ en get et on send pour récupérer les informations des users !
+
+        On a réussi à envoyer des informations en BDD, pour vérifier, il faut se rendre dans le site MongoDB Atlas !!!
+
+        Ajout d'exercices : 
+        http://localhost:5000/exercises/add
+        et le format est car c'est les champs qu'on a définit dans exercises.js : 
+        {
+            "username": "Asif",
+            "description": "Pushs-Up",
+            "duration": 15,
+            "date": "2020-06-04T09:08:02.498Z"
+        }
+
+        http://localhost:5000/exercises/ en get et on send pour récupérer les informations des exercices !
+
+        /-----------------------------------------------------------------------/
+
+        Ajoute des routes de read, d'update et de delete du CRUD pour exercises.js
+        Après newExercice.save() });
+        On a ajouté à l'extérieur, avant le module.exports = router : 
+
+        // le path est /exercises/... dans notre cas car on le fait que pour exercises 
+
+        // Le Read : l'id est l'objet crée par MongoDb qui est associé à chaque exercice : 
+        // Requete get pour recevoir les informations propres à cet exercises 
+        router.route('/:id').get((req, res) =>{
+            Exercise.findById(req.params.id)
+                .then(exercise => res.json(exercise))
+                .catch(err => res.status(400).json('Error : ' + err ));
+         });
+
+        // Le Delete : Requete pour trouver l'objet par son ID et puis le delete 
+        router.route('/:id').delete((req, res) =>{
+            Exercise.findByIdAndDelete(req.params.id)
+                .then(() => res.json('Exercise deleted !'))
+                .catch(err => res.status(400).json('Error : ' + err ));
+        });
+
+        // L'Update : 
+        // On va post la requête pour l'envoyer en BDD
+        // Tout d'abord, on doit trouver les informations actuelles avec le findById()
+        // On prend chaque champs (username, description, duration et date) et on lui attribut une nouvelle valeur 
+        // Puis on save() les nouvelles informations 
+        router.route('/update/:id').post((req, res) => {
+            Exercise.findById(req.params.id)
+                .then(exercise => {
+                    exercise.username = req.body.username;
+                    exercise.description = req.body.description;
+                    exercise.duration = Number(req.body.duration);
+                    exercise.date = Date.parse(req.body.date)
+
+                    exercise.save()
+                        .then(() => res.json('Exercise updated'))
+                        .catch(err => res.status(400).json('Error : ' + err))
+                })
+                .catch(err => res.status(400).json('Error : ' + err));
+        });
+
+        Utiliser Insomnia pour tester :
+            Read (Get) : http://localhost:5000/exercises/id 
+
+            Update (Post) : http://localhost:5000/exercises/update/id 
+                (dans le json, mettre {
+                    "username": "new value",
+                    "description" : "new value",
+                    "duration" : "new value",
+                    "date" : "new value"
+                }) pour pouvoir l'envoyer (post) en BDD
+
+            Delete (Delete) http://localhost:5000/exercises/id 
+
+    /-------------------------------------------------------------------------------------------------------------------------------------/
+    /-------------------------------------------------------------------------------------------------------------------------------------/
+                                                            Fin backend
+    /------------------------------------------------------------------------------------------------------------------------------------/
+    /-------------------------------------------------------------------------------------------------------------------------------------/
+
+
+
+
+    
+
+
+
+
+
+]
