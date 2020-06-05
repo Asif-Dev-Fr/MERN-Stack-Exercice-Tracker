@@ -295,6 +295,39 @@ In our case, we will start by the server side =>>
                                                             Fin backend
     /------------------------------------------------------------------------------------------------------------------------------------/
     /-------------------------------------------------------------------------------------------------------------------------------------/
+                                                            Front End
+
+
+    Index.html : changer le <title></title>
+    Ajout de bootstrap : npm install bootstrap
+    Et son import dans App.js : import "bootstrap/dist/css/bootstrap.min.css";
+
+    Install des react-router: npm install react-router-dom puis il faut l'importer dans app.js :
+    import { BrowserRouter as Router, Route } from "react-router-dom";
+    Puis on englobe nos éléments avec la balise <Router></Router>
+
+        <Route>
+            <Navbar />
+            <br />
+            <Route path="/" exact component={ExercisesList} />
+            <Route path="/edit/:id" component={EditExercise} />
+            <Route path="/create" component={CreateExercise} />
+            <Route path="/user" component={CreateUser} />
+        </Route>
+
+    On a besoin de créer les components. Certains component ont leur propre route avec leur propre path !
+
+    Import tous les components dans app.js : 
+        import Navbar from "./components/navbar.component";
+        import ExercisesList from "./components/exercises-list.component";
+        import EditExercise from "./components/edit-exercise.component";
+        import CreateExercise from "./components/create-exercise.component";
+        import CreateUser from "./components/create-user.component";
+
+    
+    navbar.component.js :
+        import { Link } from 'react-router-dom' nous permettent de link avec différents routes 
+        <Link to="/" className="nav-link">Exercises</Link> == <a href='/' class="nav-link">Exercises</a>
 
 
 
