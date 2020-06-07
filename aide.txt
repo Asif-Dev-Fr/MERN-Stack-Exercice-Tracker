@@ -306,14 +306,14 @@ In our case, we will start by the server side =>>
     import { BrowserRouter as Router, Route } from "react-router-dom";
     Puis on englobe nos éléments avec la balise <Router></Router>
 
-        <Route>
+        <Router>
             <Navbar />
             <br />
             <Route path="/" exact component={ExercisesList} />
             <Route path="/edit/:id" component={EditExercise} />
             <Route path="/create" component={CreateExercise} />
             <Route path="/user" component={CreateUser} />
-        </Route>
+        </Router>
 
     On a besoin de créer les components. Certains component ont leur propre route avec leur propre path !
 
@@ -329,6 +329,93 @@ In our case, we will start by the server side =>>
         import { Link } from 'react-router-dom' nous permettent de link avec différents routes 
         <Link to="/" className="nav-link">Exercises</Link> == <a href='/' class="nav-link">Exercises</a>
 
+
+    Dans les quatres autres components, on écrit le code suivant pour tester si ça fonctionne : 
+    
+    import React, {Component} from 'react';
+
+    class CreateUser extends Component {
+        render() {
+            return(
+                <div>
+                    <p>You are on the Create User Component</p>
+                </div>
+            )
+        }
+    }
+
+    export default CreateUser;
+
+    create-exercise.component.js : 
+    // On a crée un state avec des propriétés vides : 
+        state = {
+            username: '',
+            description: '',
+            duration: 0,
+            date: new Date(),
+            users: []
+        }
+
+    // On crée un méthode pour définir un nouveau username : 
+    onChangeUsername = (e) => {
+        this.setState({
+            username: e.target.value,
+        })
+    }
+
+    // On crée un méthode pour définir une nouvelle description : 
+    onChangeDescription = (e) => {
+        this.setState({
+            description: e.target.value,
+        })
+    }
+
+    // On crée un méthode pour définir une nouvelle duration : 
+    onChangeDuration = (e) => {
+        this.setState({
+            duration: e.target.value,
+        })
+    }
+
+    // On crée un méthode pour définir une nouvelle date : 
+    onChangDate = (date) => {
+        this.setState({
+            date: date,
+        })
+    }
+    
+    // Submit du formulaire, les informations tapés sont stockés dans la const Exercise
+    onSubmit = (e) => {
+        e.preventDefault();
+        const exercise = {
+            username: this.state.username,
+            description: this.state.description,
+            duration: this.state.duration,
+            date: this.state.date,
+        }
+
+        console.log(exercise);
+
+        // Redirection vers la homepage    
+        window.location = '/';
+    }
+
+    // Create-exercise.component.js
+    On obtient les options de notre user dans un array et on map pour le parcourir : 
+        {
+            this.state.users.map(function (user) {
+                return <option
+                            key={user}
+                            value={user}>{user}
+                        </option>;
+            })
+        }
+
+    Installer le component pour la date : 
+        npm install react-datepicker
+    Puis l'importer sur le fichier :
+        import DatePicker from 'react-datepicker';
+        import 'react-datepicker/dist/react-datepicker.css';
 
 
 

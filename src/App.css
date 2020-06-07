@@ -2,3 +2,8 @@
   text-align: center;
 }
 
+.changeColor {
+  text-align: center;
+  color: #FFF;
+  background-color: black;
+}
