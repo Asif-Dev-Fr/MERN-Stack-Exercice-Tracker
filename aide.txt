@@ -418,11 +418,81 @@ In our case, we will start by the server side =>>
         import 'react-datepicker/dist/react-datepicker.css';
 
 
+    Creation du formulaire dans create-user-component.js
 
-    
+    /-------------------------------------------------------------------------------------------------------------------------------------/
+    /-------------------------------------------------------------------------------------------------------------------------------------/
+                                                    Connexion du frontend au backend
+
+    Installation de la librairie axios :
+        npm install axios
+
+    Import de axios dans create-user.component.js :
+        import axios from 'axios';
+
+    Dans la méthode onSubmit(), on rajoute :
+        axios.post('http://localhost:5000/users/add', user)
+            .then(result => console.log(result.data));
+
+    On démarre le server (cd backend, npm start) et quand on rajoute un nom dans le formulaire, ça va l'ajouter en BDD !!!!!!!!!
+
+    Create.exercise.component.js :
+        Importer axios
+        Et dans la méthode onSubmit() :
+            axios.post('http://localhost:5000/exercises/add', exercise)
+                .then(result => console.log(result.data));
+
+        // On change la méthode componentDidMount() pour que dans le formulaire, on parcourt les username de notre bdd(get) et qu'on les ajoute dans les options du select : 
+            componentDidMount = () => {
+            axios.get('http://localhost:5000/users/')
+                .then(response => {
+                    response.data.length > 0 
+                        ? 
+                            this.setState({
+                                users: response.data.map(value => value.username),
+                                username : response.data[0].username,
+                            })
+                        : ''
+                })
+            }
 
 
+    Exercise-list.component.js :
+        Importer axios et import { Link } from 'react-router-dom';
+        Initialiser un state avec la propriété exercises qui est un array vides
 
+        Crée la méthode componentDidMount() pour afficher à les informations !! (On utilise surement cette méthode pour afficher les informations quand on arrive sur la page)
+
+        Méthode pour pouvoir supprimer un exercice : 
+            deleteExercise(id) {
+                axios.delete('http://localhost:5000/exercises/'+id)
+                .then(response => { console.log(response.data)});
+
+                /* Ca bugger alors j'ai remplacer par window.location = '/' pour recharger la page !!!!!!
+                // Dans componentDidMount(), on a affiché tous les excercices, là, on lui demande de regarder les id des exercices et si l'id n'est pas le même que l'id fournis lors de la suppression, on affiche l'exercice (c'est pour éviter que les exercices supprimer dans la bdd s'affiche toujours en front ?!)
+                this.setState({
+                exercises: this.state.exercises.filter(el => el._id !== id)
+                */
+                })
+            }
+
+        On crée un autre component appelée const Exercise = props => {} qui pour chaque row de la table va crée une ligne dans le front
+
+    edit-exercise.component.js :
+        Pareil que create-exercise mais dans componentDidMount(), on ajoute :
+            axios.get('http://localhost:5000/exercises/'+this.props.match.params.id)
+                .then(response => {
+                    this.setState({
+                        username: response.data.username,
+                        description: response.data.description,
+                        duration: response.data.duration,
+                        date: new Date(response.data.date)
+                    })   
+                })
+                .catch(function (error) {
+                    console.log(error);
+                })
+        
 
 
 ]
