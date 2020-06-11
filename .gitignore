@@ -23,7 +23,7 @@ yarn-debug.log*
 yarn-error.log*
 
 
-aide.text
+aide.txt
 
 /backend/node_modules
 /backend/.env
